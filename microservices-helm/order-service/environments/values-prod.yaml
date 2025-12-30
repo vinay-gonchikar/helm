@@ -1,0 +1,55 @@
+# Production environment values
+replicaCount: 3
+
+image:
+  repository: your-registry/order-service
+  tag: "1.0.0"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "200"
+  hosts:
+    - host: order.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: order-prod-tls
+      hosts:
+        - order.example.com
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+storage:
+  enabled: true
+  storageClassName: "fast-ssd"
+  size: 20Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "warn"
+    APP_ENV: "production"
+    PORT: "8082"
+    SERVICE_NAME: "order-service"
+    KAFKA_TOPIC: "orders"
+    CLUSTER: "production"
+
+nodeSelector:
+  environment: production
+  node-type: high-performance
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 15
+  targetCPUUtilizationPercentage: 75

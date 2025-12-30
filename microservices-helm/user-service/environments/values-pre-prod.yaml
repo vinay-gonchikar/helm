@@ -1,0 +1,42 @@
+# Pre-production environment values
+replicaCount: 2
+
+image:
+  repository: your-registry/user-service
+  tag: "pre-prod-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: user-preprod.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: user-preprod-tls
+      hosts:
+        - user-preprod.example.com
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 384Mi
+  requests:
+    cpu: 200m
+    memory: 192Mi
+
+storage:
+  enabled: true
+  size: 3Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "info"
+    APP_ENV: "pre-production"
+    PORT: "8081"
+    SERVICE_NAME: "user-service"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: preprod

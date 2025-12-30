@@ -1,0 +1,44 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: your-registry/notification-service
+  tag: "dev-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: notification-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: notification-dev-tls
+      hosts:
+        - notification-dev.example.com
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+storage:
+  enabled: true
+  size: 2Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "debug"
+    APP_ENV: "development"
+    PORT: "8084"
+    SERVICE_NAME: "notification-service"
+    EMAIL_PROVIDER: "sendgrid-test"
+    SMS_PROVIDER: "twilio-test"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: dev

@@ -1,0 +1,43 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: your-registry/order-service
+  tag: "dev-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: order-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: order-dev-tls
+      hosts:
+        - order-dev.example.com
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 384Mi
+  requests:
+    cpu: 150m
+    memory: 192Mi
+
+storage:
+  enabled: true
+  size: 3Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "debug"
+    APP_ENV: "development"
+    PORT: "8082"
+    SERVICE_NAME: "order-service"
+    KAFKA_TOPIC: "orders-dev"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: dev

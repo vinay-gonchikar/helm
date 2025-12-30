@@ -1,0 +1,43 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: your-registry/payment-service
+  tag: "dev-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: payment-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: payment-dev-tls
+      hosts:
+        - payment-dev.example.com
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 384Mi
+  requests:
+    cpu: 150m
+    memory: 192Mi
+
+storage:
+  enabled: true
+  size: 2Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "debug"
+    APP_ENV: "development"
+    PORT: "8083"
+    SERVICE_NAME: "payment-service"
+    PAYMENT_GATEWAY: "stripe-test"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: dev

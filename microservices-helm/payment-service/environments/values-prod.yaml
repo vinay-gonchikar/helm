@@ -1,0 +1,67 @@
+# Production environment values
+replicaCount: 3
+
+image:
+  repository: your-registry/payment-service
+  tag: "1.0.0"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "150"
+  hosts:
+    - host: payment.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: payment-prod-tls
+      hosts:
+        - payment.example.com
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+storage:
+  enabled: true
+  storageClassName: "fast-ssd"
+  size: 15Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "warn"
+    APP_ENV: "production"
+    PORT: "8083"
+    SERVICE_NAME: "payment-service"
+    PAYMENT_GATEWAY: "stripe"
+    CLUSTER: "production"
+
+nodeSelector:
+  environment: production
+  node-type: high-performance
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - payment-service
+        topologyKey: kubernetes.io/hostname
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70

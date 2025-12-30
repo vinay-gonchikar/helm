@@ -1,0 +1,58 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: your-registry/auth-service
+  tag: "dev-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: auth-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: auth-dev-tls
+      hosts:
+        - auth-dev.example.com
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+storage:
+  enabled: true
+  storageClassName: "standard"
+  size: 2Gi
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: "debug"
+    APP_ENV: "development"
+    PORT: "8080"
+    CLUSTER: "shared-dev-preprod"
+
+secrets:
+  enabled: true
+  data:
+    DATABASE_URL: "cG9zdGdyZXNxbDovL2xvY2FsaG9zdDo1NDMyL2F1dGhfZGV2"
+    JWT_SECRET: "ZGV2LWp3dC1zZWNyZXQtY2hhbmdlLW1l"
+    API_KEY: "ZGV2LWFwaS1rZXktY2hhbmdlLW1l"
+
+nodeSelector:
+  environment: dev
+
+tolerations:
+  - key: "environment"
+    operator: "Equal"
+    value: "dev"
+    effect: "NoSchedule"

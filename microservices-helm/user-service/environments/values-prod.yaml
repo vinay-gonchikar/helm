@@ -1,0 +1,54 @@
+# Production environment values
+replicaCount: 3
+
+image:
+  repository: your-registry/user-service
+  tag: "1.0.0"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: user.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: user-prod-tls
+      hosts:
+        - user.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+storage:
+  enabled: true
+  storageClassName: "fast-ssd"
+  size: 10Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "warn"
+    APP_ENV: "production"
+    PORT: "8081"
+    SERVICE_NAME: "user-service"
+    CLUSTER: "production"
+
+nodeSelector:
+  environment: production
+  node-type: high-performance
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

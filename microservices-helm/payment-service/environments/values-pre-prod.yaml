@@ -1,0 +1,51 @@
+# Pre-production environment values
+replicaCount: 2
+
+image:
+  repository: your-registry/payment-service
+  tag: "pre-prod-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: payment-preprod.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: payment-preprod-tls
+      hosts:
+        - payment-preprod.example.com
+
+resources:
+  limits:
+    cpu: 600m
+    memory: 768Mi
+  requests:
+    cpu: 300m
+    memory: 384Mi
+
+storage:
+  enabled: true
+  size: 4Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "info"
+    APP_ENV: "pre-production"
+    PORT: "8083"
+    SERVICE_NAME: "payment-service"
+    PAYMENT_GATEWAY: "stripe"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: preprod
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

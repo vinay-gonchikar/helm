@@ -1,0 +1,95 @@
+# Default values for notification-service
+replicaCount: 2
+
+image:
+  repository: your-registry/notification-service
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 8084
+  targetPort: 8084
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: notification.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: notification-tls
+      hosts:
+        - notification.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+storage:
+  enabled: true
+  storageClassName: "standard"
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  mountPath: /data
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: "info"
+    APP_ENV: "production"
+    PORT: "8084"
+    SERVICE_NAME: "notification-service"
+    EMAIL_PROVIDER: "sendgrid"
+    SMS_PROVIDER: "twilio"
+
+secrets:
+  enabled: true
+  data:
+    DATABASE_URL: "cG9zdGdyZXNxbDovL2xvY2FsaG9zdDo1NDMyL25vdGlmaWNhdGlvbnNfZGI="
+    SENDGRID_API_KEY: "c2VuZGdyaWQtYXBpLWtleS1zZWNyZXQ="
+    TWILIO_AUTH_TOKEN: "dHdpbGlvLWF1dGgtdG9rZW4tc2VjcmV0"
+    TWILIO_ACCOUNT_SID: "dHdpbGlvLWFjY291bnQtc2lk"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8084
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8084
+  initialDelaySeconds: 5
+  periodSeconds: 5

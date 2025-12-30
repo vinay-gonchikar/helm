@@ -1,0 +1,42 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: your-registry/user-service
+  tag: "dev-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: user-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: user-dev-tls
+      hosts:
+        - user-dev.example.com
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+storage:
+  enabled: true
+  size: 2Gi
+
+configMap:
+  data:
+    LOG_LEVEL: "debug"
+    APP_ENV: "development"
+    PORT: "8081"
+    SERVICE_NAME: "user-service"
+    CLUSTER: "shared-dev-preprod"
+
+nodeSelector:
+  environment: dev

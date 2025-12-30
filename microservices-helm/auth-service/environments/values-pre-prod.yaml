@@ -1,0 +1,64 @@
+# Pre-production environment values
+replicaCount: 2
+
+image:
+  repository: your-registry/auth-service
+  tag: "pre-prod-latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: auth-preprod.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: auth-preprod-tls
+      hosts:
+        - auth-preprod.example.com
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 384Mi
+  requests:
+    cpu: 200m
+    memory: 192Mi
+
+storage:
+  enabled: true
+  storageClassName: "standard"
+  size: 3Gi
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: "info"
+    APP_ENV: "pre-production"
+    PORT: "8080"
+    CLUSTER: "shared-dev-preprod"
+
+secrets:
+  enabled: true
+  data:
+    DATABASE_URL: "cG9zdGdyZXNxbDovL3ByZXByb2QtZGI6NTQzMi9hdXRoX3ByZXByb2Q="
+    JWT_SECRET: "cHJlcHJvZC1qd3Qtc2VjcmV0LWNoYW5nZS1tZQ=="
+    API_KEY: "cHJlcHJvZC1hcGkta2V5LWNoYW5nZS1tZQ=="
+
+nodeSelector:
+  environment: preprod
+
+tolerations:
+  - key: "environment"
+    operator: "Equal"
+    value: "preprod"
+    effect: "NoSchedule"
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70

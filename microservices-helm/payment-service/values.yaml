@@ -1,0 +1,95 @@
+# Default values for payment-service
+replicaCount: 3
+
+image:
+  repository: your-registry/payment-service
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 8083
+  targetPort: 8083
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: payment.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: payment-tls
+      hosts:
+        - payment.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+
+storage:
+  enabled: true
+  storageClassName: "standard"
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  mountPath: /data
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: "info"
+    APP_ENV: "production"
+    PORT: "8083"
+    SERVICE_NAME: "payment-service"
+    PAYMENT_GATEWAY: "stripe"
+
+secrets:
+  enabled: true
+  data:
+    DATABASE_URL: "cG9zdGdyZXNxbDovL2xvY2FsaG9zdDo1NDMyL3BheW1lbnRzX2Ri"
+    STRIPE_SECRET_KEY: "c2tfbGl2ZV9zdHJpcGVfc2VjcmV0X2tleQ=="
+    STRIPE_WEBHOOK_SECRET: "d2hzZWNfc3RyaXBlX3dlYmhvb2tfc2VjcmV0"
+    ENCRYPTION_KEY: "cGF5bWVudC1lbmNyeXB0aW9uLWtleQ=="
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8083
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8083
+  initialDelaySeconds: 5
+  periodSeconds: 5

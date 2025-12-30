@@ -1,0 +1,78 @@
+# Production environment values
+replicaCount: 3
+
+image:
+  repository: your-registry/auth-service
+  tag: "1.0.0"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: auth.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: auth-prod-tls
+      hosts:
+        - auth.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+storage:
+  enabled: true
+  storageClassName: "fast-ssd"
+  size: 10Gi
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: "warn"
+    APP_ENV: "production"
+    PORT: "8080"
+    CLUSTER: "production"
+
+secrets:
+  enabled: true
+  data:
+    DATABASE_URL: "cG9zdGdyZXNxbDovL3Byb2QtZGI6NTQzMi9hdXRoX3Byb2Q="
+    JWT_SECRET: "cHJvZC1qd3Qtc2VjcmV0LXN1cGVyLXNlY3VyZQ=="
+    API_KEY: "cHJvZC1hcGkta2V5LXN1cGVyLXNlY3VyZQ=="
+
+nodeSelector:
+  environment: production
+  node-type: high-performance
+
+tolerations:
+  - key: "environment"
+    operator: "Equal"
+    value: "production"
+    effect: "NoSchedule"
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - auth-service
+        topologyKey: kubernetes.io/hostname
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
